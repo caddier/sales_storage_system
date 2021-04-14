@@ -2,6 +2,6 @@
     "dbhost" : "107.182.31.176",
     "dbport" : 3306,
     "dbUser" : "admin",
-    "DbPwd" : "admin2021abcd#ABCD",
+    "DbPwd" : "xxxxxxxx",
     "listenport" : 8099
 }
