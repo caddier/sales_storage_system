@@ -1,0 +1,210 @@
+<html>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <head>
+        <link rel="stylesheet" href="js/bootstrap.css">
+        <script src="js/bootstrap.bundle.min.js"></script>
+        <script src="js/jquery-3.5.1.min.js"></script>
+        <title>销售商品</title>
+    </head>
+    <body>
+
+        <div class="container">
+
+            <div class="row">
+                <div class="col-md-12 text-center">
+                   <img src="img/logo.png" height="100pt">
+                </div>
+            </div>
+
+            <div class="row" style="height: 10px;"></div>
+
+            <div class="row" style="background-color: #0d6efd;">
+                <table>
+                    <tr>
+                        <td style="width: 5%;"></td>
+                        <td style="color: white; height: 35px; padding-top: 2pt;  width: 10%;"><a href="goods_input.html" style="color: white;">商品入库</a></td>
+                        <td style="color: white; height: 35px; padding-top: 2pt;  width: 10%;"><a href="goods_sale.html" style="color: white;">销售商品</a></td>
+                        <td style="color: white; height: 35px; padding-top: 2pt;  width: 10%; "><a href="goods_query.html" style="color: white;">查看商品</a></td>
+                        <td style="color: white; height: 35px; padding-top: 2pt;  width: 10%; "><a href="#" style="color: white;">调拨查询</a></td>
+                        <td style="width: 55%;"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="row" style="height: 10px;"></div>
+            <div class="row" style="height: 28pt; background-color:#cccccc;">
+                <div class="col-md-3" style="padding-left:5pt;padding-top:4pt;">当前位置: 销售商品</div>
+                <div class="col-md-9"></div>
+            </div>
+            <div class="row" style="height: 10px;"></div>
+
+            <div class="row">
+                <div class="col-md-12" style="padding-left: 0px; ">
+                    <div class="container" style="padding-left: 0px;">
+                        <div class="row">
+                            <div class="col-md-1" style="padding-left: 20pt; padding-top: 5px;">条形码:</div>
+                            <div class="col-md-2" style="padding-left: 1px;"><input class="form-control" id="goods-barcode-name" type="text"></div>
+                            <div class="col-md-1" style="padding-left: 20pt; "><button type="button" class="btn btn-primary" id='btn-query'>查询</button></div>
+                        </div>
+                        
+                        <div class="row" style="height: 20pt;"></div>
+
+                        <div class="row">
+                            <div class="col-md-11">
+                                <table class="table table-bordered" id="query-result">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">条形码</th>
+                                            <th scope="col">商品名</th>
+                                            <th scope="col">售价</th>
+                                            <th scope="col">库存数量</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                            
+                        </div>
+
+                        <div class="row" style="height: 20pt;"></div>
+
+                       
+
+                        <div class="row" style="height: 10pt;"></div>
+                        
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="row">
+                                    <div class="col-md-4" style="padding-top: 3pt; text-align: right;">销售数量:</div>
+                                    <div class="col-md-8" style="padding-left: 0pt;"><input class="form-control" id='sales-quantity' type="text"></div>
+                                </div>  
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="row">
+                                    <div class="col-md-4" style="padding-top: 3pt; text-align: right;">销售单价:</div>
+                                    <div class="col-md-8" style="padding-left: 0pt;"><input class="form-control" id='sales-price' type="text"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="row">
+                                    <div class="col-md-4" style="padding-top: 3pt; text-align: right;">销售金额:</div>
+                                    <div class="col-md-8" style="padding-left: 0pt;"><input class="form-control" id='sales-amount' type="text" readonly></div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-left">
+                                <button type="button" class="btn btn-primary" id='btn-sell-goods'>提交</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+          
+        </div>
+
+
+        <script>
+            $(function(){
+
+                var goodsBarcode = "";
+                var goodsName = "";
+                $('#btn-query').click(function(){
+                    var goodsBarcodeOrName = $('#goods-barcode-name').val();
+                    
+                    if(goodsBarcodeOrName.trim().length <= 0) {
+                        alert('请输入商品名字或者条形码!');
+                        return;
+                    }
+
+                    $.ajax({
+                        url : '/api/querygoods',
+                        type : 'POST',
+                        data : JSON.stringify({
+                            barcodeOrName : goodsBarcodeOrName
+                        }),
+                        contentType : 'application/json; charset=utf-8',
+                        dataType : 'json',
+                        success : function(ret) {
+                            $('#query-result').empty();
+                            var header = '<thead><tr><th scope="col">条形码</th><th scope="col">商品名</th><th scope="col">售价</th><th scope="col">库存数量</th></tr></thead>';
+                            $('#query-result').append(header);
+                            if (ret.code == 0) {
+                                var rowBody = "<tbody>"
+                                $('#query-result').append(rowBody);
+                                for(i = 0; i < ret.Data.length; i ++ ) {
+                                    var row =  "<tr><td>"+ret.Data[i].barcode+"</td>";
+                                    row += "<td>"+ret.Data[i].goodsname+"</td>";
+                                    row += "<td>"+ret.Data[i].sale_price+"</td>";
+                                    row += "<td>"+ret.Data[i].quantity+"</td>";
+                                    row += "</tr>";
+                                    $('#query-result').append(row);
+
+                                    goodsBarcode = ret.Data[i].barcode;
+                                    goodsName = ret.Data[i].goodsname;
+                                    $('#sales-price').val(ret.Data[i].sale_price);
+                                }
+                                rowBody = "</tbody>"
+                                $('#query-result').append(rowBody);
+                            } else {
+                                if (ret.code == -5) {
+                                    alert('查询失败,商品不存在');
+                                } else {
+                                    alert('查询失败 ' +  ret.code);
+                                }
+                                
+                            }
+                        },
+                        error : function(ret) {
+                            console.log('post query goods failed');
+                            alert('请求查询失败');
+                        }
+                    });
+                });
+
+                $('#btn-sell-goods').click(function(){
+                    var salesQuantity = $('#sales-quantity').val().trim();
+                    var salesAmount = salesQuantity * $('#sales-price').val();
+                    $.ajax({
+                        url : '/api/sellgoods',
+                        type : 'POST',
+                        data : JSON.stringify({
+                            barcode : goodsBarcode,
+                            goodsname : goodsName,
+                            quantity : Number(salesQuantity),
+                            sale_price : Number($('#sales-price').val()),
+                            location : 1
+                        }),
+                        contentType : 'application/json; charset=utf-8',
+                        dataType : 'json',
+                        success : function(ret) {
+                           if (ret.code == 0) {
+                                alert('销售商品成功!');
+                                $('#goods-barcode-name').focus();
+                           } else {
+                               alert('销售失败 ' + ret.code);
+                           }
+                        },
+                        error : function(ret) {
+                            console.log('post sell goods failed');
+                            alert('请求销售失败');
+                        }
+
+                    });
+                });
+
+                $('#sales-quantity').on('input',function(){
+                    var quantity = $('#sales-quantity').val();
+                    if (quantity.trim().length <= 0) {
+                        return;
+                    }
+                    var price = $('#sales-price').val();
+                    var amount = quantity * price;
+                    $('#sales-amount').val(amount.toFixed(2));
+                });
+            });
+        </script>
+
+    </body>
+</html>

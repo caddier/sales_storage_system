@@ -1,0 +1,212 @@
+<html>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <head>
+        <link rel="stylesheet" href="js/bootstrap.css">
+        <script src="js/bootstrap.bundle.min.js"></script>
+        <script src="js/jquery-3.5.1.min.js"></script>
+        <title>商品入库</title>
+    </head>
+    <body>
+
+        <div class="container">
+
+            <div class="row">
+                <div class="col-md-12 text-center">
+                   <img src="img/logo.png" height="100pt">
+                </div>
+            </div>
+
+            <div class="row" style="height: 10px;"></div>
+
+            <div class="row" style="background-color: #0d6efd;">
+                <table>
+                    <tr>
+                        <td style="width: 5%;"></td>
+                        <td style="color: white; height: 35px; padding-top: 2pt;  width: 10%;"><a href="goods_input.html" style="color: white;">商品入库</a></td>
+                        <td style="color: white; height: 35px; padding-top: 2pt;  width: 10%;"><a href="goods_sale.html" style="color: white;">销售商品</a></td>
+                        <td style="color: white; height: 35px; padding-top: 2pt;  width: 10%; "><a href="goods_query.html" style="color: white;">查看商品</a></td>
+                        <td style="color: white; height: 35px; padding-top: 2pt;  width: 10%; "><a href="#" style="color: white;">调拨查询</a></td>
+                        <td style="width: 55%;"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="row" style="height: 10px;"></div>
+            <div class="row" style="height: 28pt; background-color:#cccccc;">
+                <div class="col-md-3" style="padding-left:5pt;padding-top:4pt;">当前位置: 商品入库</div>
+                <div class="col-md-9"></div>
+            </div>
+            <div class="row" style="height: 10px;"></div>
+            <div class="row">
+                <div class="col-md-12" style="padding-left: 0px; ">
+                    <div class="container" style="padding-left: 0px;">
+                        <div class="row">
+                            <div class="col-md-1" style="padding-left: 20pt; padding-top: 5px;">条形码:</div>
+                            <div class="col-md-2" style="padding-left: 1px;"><input class="form-control" id='goods-bar-code' type="text"></div>
+                            <div class="col-md-1" style="padding-left: 20pt; padding-top: 5px;">商品名:</div>
+                            <div class="col-md-2" style="padding-left: 1px;"><textarea class="form-control" id="goods-name" type="text"> </textarea></div>
+                            <div class="col-md-1" style="padding-left: 20pt; padding-top: 5px;">有效期:</div>
+                            <div class="col-md-2" style="padding-left: 1px;"><input class="form-control" id="expire-date" placeholder="2021-11-03" type="text"></div>
+                            <div class="col-md-1" style="padding-left: 20pt; padding-top: 5px;">数量:</div>
+                            <div class="col-md-2" style="padding-left: 1px;"><input class="form-control" id="goods-quantity" type="text"></div>
+                        </div>
+                        <div class="row" style="height: 10pt;"></div>
+                        <div class="row">
+                            <div class="col-md-1" style="padding-left: 20pt; padding-top: 5px;">进货价:</div>
+                            <div class="col-md-2" style="padding-left: 1px;"><input class="form-control" id="goods-cost" type="text"></div>
+                            <div class="col-md-1" style="padding-left: 20pt; padding-top: 5px;">售价:</div>
+                            <div class="col-md-2" style="padding-left: 1px;"><input class="form-control" id="goods-sales-price" type="text"></div>
+                            <div class="col-md-1" style="padding-left: 20pt; padding-top: 5px;">位置:</div>
+                            <div class="col-md-2" style="padding-left: 1px;">
+                                <div class="form-group">
+                                    <select class="form-control" id="location-list">
+                                    <option>门店</option>
+                                    <option>Ranch仓库</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" style="height: 10px;"></div>
+
+            <div class="row" >
+                <div class="col-md-4"></div>
+                <div class="col-md-4 text-center"><button type="button" class="btn btn-primary" id ='input-goods-btn'>提交</button></div>
+                <div class="col-md-4"></div>
+            </div>
+        </div>
+
+<script>
+
+    function getLocationList() {
+        $.ajax({
+                    url : '/api/querylocation',
+                    type : 'POST',
+                    data : {},
+                    contentType : 'application/json; charset=utf-8',
+                    dataType : 'json',
+                    success : function(ret) {
+                        console.log(JSON.stringify(ret));
+                        $('#location-list').empty();
+                        if (ret.code == 0) {
+                            for(i = 0; i < ret.Data.length; i ++) {
+                                var item = "<option value=" + ret.Data[i].id + ">" + ret.Data[i].name + "</option>";
+                                $('#location-list').append(item);
+                            }
+                        } else {
+                            console.log('get location list failed ' + ret.code);
+                        }
+                         
+                    },
+                    error : function(ret) {
+                        console.log('error');
+                    }
+                });
+    }
+
+
+
+    function tryGetGoodsInfo() {
+        $('#goods-bar-code').change(function(){
+            if ($('#goods-bar-code').val().length > 0) {
+                $('#expire-date').val('2021-12-31');
+                $.ajax({
+                url : '/api/querygoods',
+                type : 'POST',
+                data : JSON.stringify({
+                    barcodeOrName : $('#goods-bar-code').val()
+                }),
+                contentType : 'application/json; charset=utf-8',
+                dataType : 'json',
+                success : function(ret) {
+                    if (ret.code == 0) {
+                        if (ret.Data.length > 0) {
+                            $('#goods-name').val(ret.Data[0].goodsname);
+                            $('#goods-sales-price').val(ret.Data[0].sale_price);
+                        }
+                    }  else if (ret.code == -5){
+                        console.log('can not found goods');
+                        $('#goods-name').val('');
+                        $('#goods-sales-price').val('');
+                    }
+                },
+                error : function(ret) {
+                    
+                }
+            });
+            }
+        });
+    }
+
+
+    $(function(){
+        getLocationList();
+        tryGetGoodsInfo();
+        $('#input-goods-btn').click(function(ev){
+            var barCode = $('#goods-bar-code').val();
+            if (barCode.length <= 0) {
+                alert('二维码是空的');
+                return;
+            }
+            var goodsName = $('#goods-name').val();
+            if (goodsName.length <= 0) {
+                alert('商品名字是空的');
+                return;
+            }
+            var expireDate = $('#expire-date').val();
+            var goodsQty = $('#goods-quantity').val();
+            if (goodsQty.length <= 0) {
+                alert('商品数量是空的');
+                return;
+            }
+            var goodsCost = $('#goods-cost').val();
+
+            if (goodsCost.length <= 0) {
+                alert('商品成本价格是空的');
+                return;
+            }
+            var salesPrice = $('#goods-sales-price').val();
+            if (goodsCost.length <= 0) {
+                alert('商品零售价格是空的');
+                return;
+            }
+            var location = $('#location-list option:selected').text();
+            console.log('barcode is ' + barCode);
+            $.ajax({
+                url : '/api/inputgoods',
+                type : 'POST',
+                data : JSON.stringify({
+                    barcode : barCode,
+                    goodsname : goodsName,
+                    expiredate : expireDate,
+                    quantity : Number(goodsQty),
+                    cost : Number(goodsCost),
+                    saleprice : Number(salesPrice),
+                    location : location
+                }),
+                contentType : 'application/json; charset=utf-8',
+                dataType : 'json',
+                success : function(ret) {
+                    if (ret.code == 0) {
+                        alert('入库成功');
+                    } else {
+                        alert('入库失败');
+                    }
+                    console.log('post input goods success');
+                },
+                error : function(ret) {
+                    console.log('post input goods failed');
+                    alert('入库失败');
+                }
+            });
+        });
+    }
+);
+</script>
+
+
+    </body>
+</html>
